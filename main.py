@@ -72,7 +72,7 @@ deleted = 0
 percentChanceToSpawnFruit = 95
 noFruitSpawnStreak = 0
 
-# updates dictionary of variables on screen
+# shows dictionary of variables on screen
 def showStatsDict(statsDict:dict):
     text_position_x = WINDOW_SIZE[0]/200
     text_position_y = WINDOW_SIZE[1]/150
@@ -82,6 +82,7 @@ def showStatsDict(statsDict:dict):
         screen.blit(entry_text, (text_position_x, text_position_y))
         text_position_y += entry_text_height+(WINDOW_SIZE[1]/200)
 
+# runs every frame
 while True:
     frame+=1
     if frame >= FRAMERATE:
@@ -97,7 +98,7 @@ while True:
         if event.type == MOUSEBUTTONDOWN:
             mousePos = event.pos
     
-    if time <= 0:
+    if time <= 0: # if the timer has ended show final score
         screen.fill((150, 150, 150))
         time_up_text = GAME_END_FONT.render("Time's Up!", True, (255, 255, 255))
         time_up_text_width, time_up_text_height = GAME_END_FONT.size("Time's Up!")
