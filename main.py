@@ -11,16 +11,21 @@ print(DISPLAY_SIZE[1]) # print display height
 WINDOW_SIZE = (int((DISPLAY_SIZE[0]*3)/4), int((DISPLAY_SIZE[1]*3)/4)) # makes window 3/4 the size of the users display
 print(WINDOW_SIZE[0]) # print window width
 print(WINDOW_SIZE[1]) # print window height
+
 screen = pygame.display.set_mode(WINDOW_SIZE)
 clock = pygame.time.Clock()
+
+# fonts for text used in game
 STATS_FONT = pygame.font.SysFont("Arial", 12)
 GAME_END_FONT = pygame.font.SysFont("Arial", 96)
 
+# values that do not change during the program
 SPRITE_SIZE = 72 # pixel length of one side of sprites (ALL SPRITES MUST BE SQUARE)
 SPRITE_SPEED = 8
 FRAMERATE = 60
 
 fruitOnScreen = [] # will contain fruit currently on screen for ease of access
+
 
 # have fruit class and fruit enums that define attributes of different fruit types
 class FruitTypes(Enum):
@@ -65,22 +70,26 @@ class Fruit(pygame.sprite.Sprite):
                 return True
         return False
 
+
+# values used in program
 frame = 0
 time = 15
 score = 0
-deleted = 0
-percentChanceToSpawnFruit = 95
-noFruitSpawnStreak = 0
+#deleted = 0
+percentChanceToSpawnFruit = 5
+noFruitSpawnStreak = 0 # number of times a frame has passed without a fruit spawning in a row
+
 
 # shows dictionary of variables on screen
 def showStatsDict(statsDict:dict):
     text_position_x = WINDOW_SIZE[0]/200
     text_position_y = WINDOW_SIZE[1]/150
     for entry in statsDict:
-        entry_text = STATS_FONT.render(entry + " - " + str(statsDict[entry]), True, (255, 255, 255))
-        entry_text_height = STATS_FONT.size(entry + " - " + str(statsDict[entry]))[1]
+        entry_text = STATS_FONT.render(entry + ": " + str(statsDict[entry]), True, (255, 255, 255))
+        entry_text_height = STATS_FONT.size(entry + ": " + str(statsDict[entry]))[1]
         screen.blit(entry_text, (text_position_x, text_position_y))
         text_position_y += entry_text_height+(WINDOW_SIZE[1]/200)
+
 
 # runs every frame
 while True:
@@ -107,10 +116,10 @@ while True:
         score_text_width, score_text_height = GAME_END_FONT.size(f"Final Score: {score}")
         screen.blit(score_text, ((WINDOW_SIZE[0]/2)-(score_text_width/2), ((WINDOW_SIZE[1]*9)/16)-(score_text_height/2)))
         pygame.display.flip()
-        clock.tick_busy_loop(FRAMERATE)
+        clock.tick(FRAMERATE)
     else:
-        if random.randint(1, 100) >= percentChanceToSpawnFruit:
-            percentChanceToSpawnFruit = 95
+        if random.randint(1, 100) <= percentChanceToSpawnFruit:
+            percentChanceToSpawnFruit = 5
             noFruitSpawnStreak = 0
             i = random.randint(0, 3)
             if i == 0:
@@ -124,7 +133,7 @@ while True:
         else:
             noFruitSpawnStreak += 1
             if noFruitSpawnStreak >= 15:
-                percentChanceToSpawnFruit -= 1
+                percentChanceToSpawnFruit += 1
 
         screen.fill((150, 150, 150))
 
@@ -133,7 +142,7 @@ while True:
             "Score" : score,
             "Frame" : frame,
             "Fruit On Screen" : len(fruitOnScreen),
-            "Deleted fruits" : deleted,
+#            "Deleted fruits" : deleted,
             "No fruit spawn streak" : noFruitSpawnStreak,
             "Percent chance to spawn fruit" : percentChanceToSpawnFruit
         })
@@ -144,13 +153,13 @@ while True:
             if fruit.rect.collidepoint(mousePos):
                 score += fruit.fruitType.value[4]
                 fruitOnScreen.pop(fruitIndex)
-                deleted += 1
+#                deleted += 1
             elif fruit.updatePosition():
                 fruitOnScreen.pop(fruitIndex)
-                deleted += 1
+#                deleted += 1
             else:
                 screen.blit(fruit.image, fruit.rect)
                 fruitIndex += 1
 
         pygame.display.flip()
-        clock.tick_busy_loop(FRAMERATE)
+        clock.tick(FRAMERATE)
