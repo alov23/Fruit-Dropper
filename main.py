@@ -36,6 +36,7 @@ class FruitTypes(Enum):
     BLUEBERRIES = [pygame.image.load("fruit_sprites/blueberries.png"), False, ((SPRITE_SPEED*3)/4, -((SPRITE_SPEED*3)/4)), True, 150]
 
 class Fruit(pygame.sprite.Sprite):
+    # class constructor that allows fruit to be set to a certain pre-made fruit type and use its values
     def __init__(self, fruitType):
         if not isinstance(fruitType, FruitTypes):
             raise TypeError("fruitType not a valid enumerator")
@@ -104,7 +105,7 @@ while True:
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
-        if event.type == MOUSEBUTTONDOWN:
+        if event.type == MOUSEBUTTONDOWN: # checks if mouse is being held down
             mousePos = event.pos
     
     if time <= 0: # if the timer has ended show final score
