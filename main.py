@@ -39,7 +39,7 @@ class Fruit(pygame.sprite.Sprite):
     # class constructor that allows fruit to be set to a certain pre-made fruit type and use its values
     def __init__(self, fruitType):
         if not isinstance(fruitType, FruitTypes):
-            raise TypeError("fruitType not a valid enumerator")
+            raise TypeError("fruitType not a valid enumerator") # terminates program if someone edits the code and tries to add a fruit of a type that doesn't exist
         self.fruitType = fruitType
         self.image = self.fruitType.value[0]
 
@@ -50,7 +50,7 @@ class Fruit(pygame.sprite.Sprite):
         
         self.rect = pygame.Rect((self.position[0], self.position[1]), (SPRITE_SIZE, SPRITE_SIZE))
 
-        if self.position[0] <= WINDOW_SIZE[0]/2:
+        if self.position[0] <= WINDOW_SIZE[0]/2: # sets direction fruit is facing based on which half of the screen it is on
             self.facing = 0 # self.facing == 0 means facing right
         else:
             self.facing = 1 # self.facing == 1 means facing left
