@@ -8,8 +8,7 @@ pygame.init()
 DISPLAY_SIZE = (pygame.display.Info().current_w, pygame.display.Info().current_h)
 print(DISPLAY_SIZE[0]) # print display width
 print(DISPLAY_SIZE[1]) # print display height
-#WINDOW_SIZE = (int((DISPLAY_SIZE[0]*3)/4), int((DISPLAY_SIZE[1]*3)/4)) # makes window 3/4 the size of the users display
-WINDOW_SIZE = (int((DISPLAY_SIZE[0]*3)/4), int(( ((DISPLAY_SIZE[0]/16)*9) *3)/4)) # makes window 3/4 the size of the users display
+WINDOW_SIZE = (int((DISPLAY_SIZE[0]*3)/4), int(( ((DISPLAY_SIZE[0]/16)*9) *3)/4)) # makes window 3/4 the width of the users display and keeps it 16:9 aspect ratio
 print(WINDOW_SIZE[0]) # print window width
 print(WINDOW_SIZE[1]) # print window height
 
@@ -51,9 +50,9 @@ class Fruit(pygame.sprite.Sprite):
         self.image = self.fruitType.value[0]
 
         if not self.fruitType.value[3]:
-            self.position = [random.randint(0, WINDOW_SIZE[0]), 0]
+            self.position = [random.randint(0, WINDOW_SIZE[0]), SPRITE_SIZE]
         else:
-            self.position = [random.randint(0, WINDOW_SIZE[0]), WINDOW_SIZE[1]]
+            self.position = [random.randint(0, WINDOW_SIZE[0]), WINDOW_SIZE[1]-SPRITE_SIZE]
         
         self.rect = pygame.Rect((self.position[0], self.position[1]), (SPRITE_SIZE, SPRITE_SIZE))
 
@@ -125,11 +124,11 @@ while True:
             sys.exit()
         if event.type == MOUSEBUTTONDOWN:
             mousePos = event.pos
-            if not game_started:
+            if not game_started: # enables game to be started when mouse button is let go after pressing the start game button
                 if start_game_rect.collidepoint(event.pos):
                     start_game_rect_color = start_game_rect_color_active
                     pressing_start_game_rect = True
-            if time == 0:
+            if time == 0: # starts a new game when clicking the time up screen
                 score = 0
                 percentChanceToSpawnFruit = 5
                 noFruitSpawnStreak = 0
@@ -184,7 +183,7 @@ while True:
             })
 
             fruitIndex = 0
-            for _ in range(len(fruitOnScreen)):
+            for _ in range(len(fruitOnScreen)): # goes through list of fruit on screen and updates them or the list based on certain criteria
                 fruit = fruitOnScreen[fruitIndex]
                 if fruit.rect.collidepoint(mousePos):
                     score += fruit.fruitType.value[4]
