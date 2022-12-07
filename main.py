@@ -8,32 +8,39 @@ pygame.init()
 DISPLAY_SIZE = (pygame.display.Info().current_w, pygame.display.Info().current_h)
 print(DISPLAY_SIZE[0]) # print display width
 print(DISPLAY_SIZE[1]) # print display height
-WINDOW_SIZE = (int((DISPLAY_SIZE[0]*3)/4), int((DISPLAY_SIZE[1]*3)/4)) # makes window 3/4 the size of the users display
+#WINDOW_SIZE = (int((DISPLAY_SIZE[0]*3)/4), int((DISPLAY_SIZE[1]*3)/4)) # makes window 3/4 the size of the users display
+WINDOW_SIZE = (int((DISPLAY_SIZE[0]*3)/4), int(( ((DISPLAY_SIZE[0]/16)*9) *3)/4)) # makes window 3/4 the size of the users display
 print(WINDOW_SIZE[0]) # print window width
 print(WINDOW_SIZE[1]) # print window height
 
 screen = pygame.display.set_mode(WINDOW_SIZE)
 clock = pygame.time.Clock()
 
-# fonts for text used in game
-STATS_FONT = pygame.font.SysFont("Arial", 12)
-GAME_END_FONT = pygame.font.SysFont("Arial", 96)
+start_game_rect = pygame.Rect(WINDOW_SIZE[0]/10, WINDOW_SIZE[1]/10, (WINDOW_SIZE[0]*8)/10, (WINDOW_SIZE[1]*8)/10)
+start_game_rect_color_active = pygame.Color(100, 100, 100)
+start_game_rect_color_passive = pygame.Color(50, 50, 50, 0)
+start_game_rect_color = start_game_rect_color_passive
+pressing_start_game_rect = False
 
 # values that do not change during the program
-SPRITE_SIZE = 72 # pixel length of one side of sprites (ALL SPRITES MUST BE SQUARE)
-SPRITE_SPEED = 8
+SPRITE_SIZE = 72 # pixel length of one side of sprites / could have in FruitTypes if end up using different sized sprites
+DEFAULT_SPRITE_SPEED = 8
 FRAMERATE = 60
+SECONDS_OF_PLAYTIME = 15
+# fonts for text used in game
+STATS_FONT = pygame.font.SysFont("Arial", 12)
+GAME_FONT = pygame.font.SysFont("Arial", 96)
 
 fruitOnScreen = [] # will contain fruit currently on screen for ease of access
 
 
 # have fruit class and fruit enums that define attributes of different fruit types
 class FruitTypes(Enum):
-    # [SPRITE_IMAGE, IS_DIRECTIONLESS, (MOVE_X_ON_UPDATE, MOVE_Y_ON_UPDATE), SPAWN_AT_BOTTOM, VALUE]
-    APPLE = [pygame.image.load("fruit_sprites/apple.png"), True, (0, SPRITE_SPEED), False, 50]
-    PEAR = [pygame.image.load("fruit_sprites/pear.png"), False, ((SPRITE_SPEED*3)/4, (SPRITE_SPEED*3)/4), False, 100]
-    CHERRIES = [pygame.image.load("fruit_sprites/cherries.png"), True, (0, -SPRITE_SPEED), True, 100]
-    BLUEBERRIES = [pygame.image.load("fruit_sprites/blueberries.png"), False, ((SPRITE_SPEED*3)/4, -((SPRITE_SPEED*3)/4)), True, 150]
+    # [SPRITE_IMAGE, IS_DIRECTIONLESS, (MOVE_X_ON_UPDATE, MOVE_Y_ON_UPDATE), SPAWN_AT_BOTTOM, POINT_VALUE]
+    APPLE = [pygame.image.load("fruit_sprites/apple.png"), True, (0, DEFAULT_SPRITE_SPEED), False, 50]
+    PEAR = [pygame.image.load("fruit_sprites/pear.png"), False, ((DEFAULT_SPRITE_SPEED*3)/4, (DEFAULT_SPRITE_SPEED*3)/4), False, 100]
+    CHERRIES = [pygame.image.load("fruit_sprites/cherries.png"), True, (0, -DEFAULT_SPRITE_SPEED), True, 100]
+    BLUEBERRIES = [pygame.image.load("fruit_sprites/blueberries.png"), False, ((DEFAULT_SPRITE_SPEED*3)/4, -((DEFAULT_SPRITE_SPEED*3)/4)), True, 150]
 
 class Fruit(pygame.sprite.Sprite):
     # class constructor that allows fruit to be set to a certain pre-made fruit type and use its values
@@ -73,10 +80,10 @@ class Fruit(pygame.sprite.Sprite):
 
 
 # values used in program
+game_started = False
 frame = 0
-time = 15
+time = -1
 score = 0
-#deleted = 0
 percentChanceToSpawnFruit = 5
 noFruitSpawnStreak = 0 # number of times a frame has passed without a fruit spawning in a row
 
@@ -97,7 +104,18 @@ while True:
     frame+=1
     if frame >= FRAMERATE:
         frame = 0
-        time -= 1
+        if game_started and not time <= 0:
+            time -= 1
+    if time < 10 and not time == -1:
+        if frame < 10:
+            print("time:  "  + str(time) + " frame:  " + str(frame))
+        else:
+            print("time:  "  + str(time) + " frame: " + str(frame))
+    else:
+        if frame < 10:
+            print("time: "  + str(time) + " frame:  " + str(frame))
+        else:
+            print("time: "  + str(time) + " frame: " + str(frame))
     
     mousePos = (-200, -200)
 
@@ -105,62 +123,86 @@ while True:
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
-        if event.type == MOUSEBUTTONDOWN: # checks if mouse is being held down
+        if event.type == MOUSEBUTTONDOWN:
             mousePos = event.pos
+            if not game_started:
+                if start_game_rect.collidepoint(event.pos):
+                    start_game_rect_color = start_game_rect_color_active
+                    pressing_start_game_rect = True
+            if time == 0:
+                score = 0
+                percentChanceToSpawnFruit = 5
+                noFruitSpawnStreak = 0
+                time = SECONDS_OF_PLAYTIME
+                pygame.time.wait(100)
+        if event.type == MOUSEBUTTONUP:
+            if not game_started and pressing_start_game_rect: # show game after start button is released
+                game_started = True
+                pressing_start_game_rect = False
+                start_game_rect_color = start_game_rect_color_passive
+                time = SECONDS_OF_PLAYTIME
+                pygame.time.wait(100)
     
-    if time <= 0: # if the timer has ended show final score
-        screen.fill((150, 150, 150))
-        time_up_text = GAME_END_FONT.render("Time's Up!", True, (255, 255, 255))
-        time_up_text_width, time_up_text_height = GAME_END_FONT.size("Time's Up!")
-        screen.blit(time_up_text, ((WINDOW_SIZE[0]/2)-(time_up_text_width/2), ((WINDOW_SIZE[1]*3)/8)-(time_up_text_height/2)))
-        score_text = GAME_END_FONT.render(f"Final Score: {score}", True, (255, 255, 255))
-        score_text_width, score_text_height = GAME_END_FONT.size(f"Final Score: {score}")
-        screen.blit(score_text, ((WINDOW_SIZE[0]/2)-(score_text_width/2), ((WINDOW_SIZE[1]*9)/16)-(score_text_height/2)))
-        pygame.display.flip()
-        clock.tick(FRAMERATE)
-    else:
-        if random.randint(1, 100) <= percentChanceToSpawnFruit:
-            percentChanceToSpawnFruit = 5
-            noFruitSpawnStreak = 0
-            i = random.randint(0, 3)
-            if i == 0:
-                fruitOnScreen.append(Fruit(FruitTypes.APPLE))
-            elif i == 1:
-                fruitOnScreen.append(Fruit(FruitTypes.PEAR))
-            elif i == 2:
-                fruitOnScreen.append(Fruit(FruitTypes.CHERRIES))
-            elif i == 3:
-                fruitOnScreen.append(Fruit(FruitTypes.BLUEBERRIES))
-        else:
-            noFruitSpawnStreak += 1
-            if noFruitSpawnStreak >= 15:
-                percentChanceToSpawnFruit += 1
-
-        screen.fill((150, 150, 150))
-
-        showStatsDict({
-            "Time Left" : time,
-            "Score" : score,
-            "Frame" : frame,
-            "Fruit On Screen" : len(fruitOnScreen),
-#            "Deleted fruits" : deleted,
-            "No fruit spawn streak" : noFruitSpawnStreak,
-            "Percent chance to spawn fruit" : percentChanceToSpawnFruit
-        })
-
-        fruitIndex = 0
-        for _ in range(len(fruitOnScreen)):
-            fruit = fruitOnScreen[fruitIndex]
-            if fruit.rect.collidepoint(mousePos):
-                score += fruit.fruitType.value[4]
-                fruitOnScreen.pop(fruitIndex)
-#                deleted += 1
-            elif fruit.updatePosition():
-                fruitOnScreen.pop(fruitIndex)
-#                deleted += 1
+    if game_started:
+        if time == 0: # if the timer has ended show final score
+            screen.fill((150, 150, 150))
+            time_up_text = GAME_FONT.render("Time's Up!", True, (255, 255, 255))
+            time_up_text_width, time_up_text_height = GAME_FONT.size("Time's Up!")
+            screen.blit(time_up_text, ((WINDOW_SIZE[0]/2)-(time_up_text_width/2), ((WINDOW_SIZE[1]*3)/8)-(time_up_text_height/2)))
+            score_text = GAME_FONT.render(f"Final Score: {score}", True, (255, 255, 255))
+            score_text_width, score_text_height = GAME_FONT.size(f"Final Score: {score}")
+            screen.blit(score_text, ((WINDOW_SIZE[0]/2)-(score_text_width/2), ((WINDOW_SIZE[1]*9)/16)-(score_text_height/2)))
+            pygame.display.flip()
+            clock.tick(FRAMERATE)
+        else: # update game objects
+            if random.randint(1, 100) <= percentChanceToSpawnFruit:
+                percentChanceToSpawnFruit = 5
+                noFruitSpawnStreak = 0
+                i = random.randint(0, 3)
+                if i == 0:
+                    fruitOnScreen.append(Fruit(FruitTypes.APPLE))
+                elif i == 1:
+                    fruitOnScreen.append(Fruit(FruitTypes.PEAR))
+                elif i == 2:
+                    fruitOnScreen.append(Fruit(FruitTypes.CHERRIES))
+                elif i == 3:
+                    fruitOnScreen.append(Fruit(FruitTypes.BLUEBERRIES))
             else:
-                screen.blit(fruit.image, fruit.rect)
-                fruitIndex += 1
+                noFruitSpawnStreak += 1
+                if noFruitSpawnStreak >= 15:
+                    percentChanceToSpawnFruit += 1
 
-        pygame.display.flip()
-        clock.tick(FRAMERATE)
+            screen.fill((150, 150, 150))
+
+            showStatsDict({
+                "Time Left" : time,
+                "Score" : score,
+                "Frame" : frame,
+                "Fruit On Screen" : len(fruitOnScreen),
+                "No fruit spawn streak" : noFruitSpawnStreak,
+                "Percent chance to spawn fruit" : percentChanceToSpawnFruit
+            })
+
+            fruitIndex = 0
+            for _ in range(len(fruitOnScreen)):
+                fruit = fruitOnScreen[fruitIndex]
+                if fruit.rect.collidepoint(mousePos):
+                    score += fruit.fruitType.value[4]
+                    fruitOnScreen.pop(fruitIndex)
+                elif fruit.updatePosition():
+                    fruitOnScreen.pop(fruitIndex)
+                else:
+                    screen.blit(fruit.image, fruit.rect)
+                    fruitIndex += 1
+    else: # show start game screen
+        screen.fill((150, 150, 150))
+        pygame.draw.rect(screen, start_game_rect_color, start_game_rect)
+        start_game_text_label = GAME_FONT.render("Start Game", True, (255, 255, 255))
+        start_game_text_width, start_game_text_height = GAME_FONT.size("Start Game")
+        screen.blit(start_game_text_label, (
+            (start_game_rect.x+(start_game_rect.w/2))-(start_game_text_width/2),
+            (start_game_rect.y+(start_game_rect.h/2))-(start_game_text_height/2)
+        ))
+
+    pygame.display.flip()
+    clock.tick(FRAMERATE)
