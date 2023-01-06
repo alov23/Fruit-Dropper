@@ -45,7 +45,7 @@ class Fruit(pygame.sprite.Sprite):
     # class constructor that allows fruit to be set to a certain pre-made fruit type and use its values
     def __init__(self, fruitType):
         if not isinstance(fruitType, FruitTypes):
-            raise TypeError("fruitType not a valid enumerator") # terminates program if someone edits the code and tries to add a fruit of a type that doesn't exist
+            raise TypeError("fruitType not a valid enumerator") # terminates program if someone edits the code and tries to create a fruit of a type that doesn't exist
         self.fruitType = fruitType
         self.image = self.fruitType.value[0]
 
